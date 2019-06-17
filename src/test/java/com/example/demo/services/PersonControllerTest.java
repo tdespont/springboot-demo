@@ -2,49 +2,56 @@ package com.example.demo.services;
 
 import com.example.demo.Repository.PersonRepository;
 import com.example.demo.model.Person;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.client.MockRestServiceServer;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.*;
-import static org.assertj.core.api.Assertions.*;
 
 @RunWith(SpringRunner.class)
-//@SpringBootTest
-@RestClientTest(PersonController.class)
+@SpringBootTest
+@AutoConfigureTestDatabase
 public class PersonControllerTest {
 
-    @Autowired
-    private MockRestServiceServer server;
+    private PersonController controller;
 
     private PersonRepository mockRepository = mock(PersonRepository.class);
 
     @Before
     public void before() {
-        /*controller = new PersonController(mockRepository);*/
+        controller = new PersonController(mockRepository);
     }
 
     @Test
+    @Sql(scripts = "classpath:/test-sql/personData.sql")
     public void findAll() {
-        /*List<Person> personExpected = new ArrayList<>();
-        when(mockRepository.findAll()).thenReturn(personExpected);
+        List<Person> personsExpected = new ArrayList<>();
+        when(mockRepository.findAll()).thenReturn(personsExpected);
         List<Person> persons = controller.findAll();
-        verify(mockRepository).findAll();*/
+        verify(mockRepository).findAll();
+        assertEquals(persons, personsExpected);
+    }
 
-        /*this.server.expect(requestTo("/person"))
-                .andRespond(withSuccess("hello", MediaType.APPLICATION_JSON_VALUE));
-        String greeting = this.service.callRestService();
-        assertThat(greeting).isEqualTo("hello");*/
+    @Test
+    public void findAllThrowException() {
+        List<Person> personsExpected = new ArrayList<>();
+        when(mockRepository.findAll()).thenThrow(new RuntimeException());
+        try {
+            List<Person> persons = controller.findAll();
+        } catch (RuntimeException re) {
+            verify(mockRepository).findAll();
+            return;
+        }
+        fail();
     }
 
 }
