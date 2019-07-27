@@ -1,15 +1,20 @@
 package com.example.demo.services;
 
-import com.example.demo.Repository.PersonRepository;
 import com.example.demo.model.Person;
+import com.example.demo.repository.PersonRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.hateoas.Resource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+
 @RestController
-public class PersonController {
+class PersonController {
 
     private static final Logger logger = LoggerFactory.getLogger(PersonController.class);
 
@@ -24,14 +29,21 @@ public class PersonController {
         return repository.findAll();
     }
 
+
     @PostMapping("/person")
     Person saveNewPerson(@RequestBody Person newPerson) {
         return repository.save(newPerson);
     }
 
     @GetMapping("/person/{id}")
-    Person findPersonById(@PathVariable Long id) {
-        return repository.findById(id).get();
+    private Resource<Person> findPersonById(@PathVariable Long id) {
+
+        Person person = repository.findById(id).get();
+        /*.orElseThrow(() -> new EmployeeNotFoundException(id));*/
+
+        return new Resource<>(person,
+                linkTo(methodOn(PersonController.class).findPersonById(id)).withSelfRel(),
+                linkTo(methodOn(PersonController.class).findAll()).withRel("persons"));
     }
 
     @PutMapping("/person")
@@ -41,14 +53,16 @@ public class PersonController {
     }
 
     @PutMapping("/person/{firstName}/{lastName}")
-    Person savePerson(@PathVariable String firstName, @PathVariable String lastName) {
+    ResponseEntity<Person> savePerson(@PathVariable String firstName, @PathVariable String lastName) {
         logger.info("New Person : " + firstName + " " + lastName);
         Person savedPerson = new Person(firstName, lastName);
-        return repository.save(savedPerson);
+        savedPerson = repository.save(savedPerson);
+        return ResponseEntity.ok(savedPerson);
     }
 
     @DeleteMapping("/person/{id}")
-    void deletePerson(@PathVariable Long id) {
+    ResponseEntity<?> deletePerson(@PathVariable Long id) {
         repository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }

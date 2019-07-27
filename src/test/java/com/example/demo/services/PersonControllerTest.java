@@ -1,7 +1,7 @@
 package com.example.demo.services;
 
-import com.example.demo.Repository.PersonRepository;
 import com.example.demo.model.Person;
+import com.example.demo.repository.PersonRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,7 +24,7 @@ public class PersonControllerTest {
 
     private PersonController controller;
 
-    private PersonRepository mockRepository = mock(PersonRepository.class);
+    private final PersonRepository mockRepository = mock(PersonRepository.class);
 
     @Before
     public void before() {
